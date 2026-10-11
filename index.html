@@ -366,13 +366,6 @@ footer{margin-top:16cqi;display:flex;flex-direction:column;align-items:center;wi
                 <label class="pill"><input type="radio" id="f-no" name="attending" value="No"><span>No</span></label>
               </div>
             </fieldset>
-            <fieldset class="field guests collapsed" id="guests-field">
-              <legend>Number attending</legend>
-              <div class="pills">
-                <label class="pill"><input type="radio" id="f-g1" name="guests" value="1"><span>1 person</span></label>
-                <label class="pill"><input type="radio" id="f-g2" name="guests" value="2"><span>2 people</span></label>
-              </div>
-            </fieldset>
             <div class="field">
               <label for="f-msg">Message <span class="opt">(optional)</span></label>
               <textarea class="input" id="f-msg" name="message" maxlength="1000" placeholder="A note for the couple"></textarea>
@@ -610,19 +603,11 @@ if (tick()) { var cdTimer = setInterval(function(){ if (!tick()) clearInterval(c
 
 /* ---------- RSVP ---------- */
 var form = document.getElementById("rsvp-form");
-var guestsField = document.getElementById("guests-field");
 var errEl = document.getElementById("f-err"), svcErr = document.getElementById("f-svc-err");
 var submitBtn = document.getElementById("f-submit");
 var thanks = document.getElementById("thanks"), thanksText = document.getElementById("thanks-text");
 
-form.addEventListener("change", function(e){
-  if (e.target.name === "attending") {
-    var yes = e.target.value === "Yes";
-    guestsField.classList.toggle("collapsed", !yes);
-    if (!yes) { var g = form.querySelectorAll('input[name="guests"]'); for (var i = 0; i < g.length; i++) g[i].checked = false; }
-  }
-  errEl.hidden = true;
-});
+form.addEventListener("change", function(){ errEl.hidden = true; });
 
 function rsvpVal(name){ var el = form.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ""; }
 function setBusy(b){
@@ -633,8 +618,8 @@ function setBusy(b){
 form.addEventListener("submit", function(e){
   e.preventDefault();
   errEl.hidden = true; svcErr.hidden = true;
-  var name = form.elements.name.value.trim(), attending = rsvpVal("attending"), guests = rsvpVal("guests"), message = form.elements.message.value.trim();
-  var problem = !name ? "Please enter your name." : !attending ? "Please choose whether you are attending." : (attending === "Yes" && !guests) ? "Please choose how many people are attending." : "";
+  var name = form.elements.name.value.trim(), attending = rsvpVal("attending"), message = form.elements.message.value.trim();
+  var problem = !name ? "Please enter your name." : !attending ? "Please choose whether you are attending." : "";
   if (problem) { errEl.textContent = problem; errEl.hidden = false; return; }
   if (form.elements.botcheck.checked) return;
 
@@ -647,14 +632,12 @@ form.addEventListener("submit", function(e){
     svcErr.hidden = false; return;
   }
 
-  var guestCount = attending === "Yes" ? guests : "0";
   var payload = {
     access_key: CONFIG.web3formsKey,
-    subject: "RSVP: " + name + " – " + (attending === "Yes" ? "Attending (" + guestCount + ")" : "Not attending"),
+    subject: "RSVP: " + name + " – " + (attending === "Yes" ? "Attending" : "Not attending"),
     from_name: "Azim Poyan & Brishna Wedding RSVP",
     Name: name,
     Attending: attending,
-    "Number attending": guestCount,
     Message: message || "(none)",
     botcheck: ""
   };
@@ -689,7 +672,7 @@ form.addEventListener("submit", function(e){
 });
 
 document.getElementById("again").addEventListener("click", function(){
-  form.reset(); guestsField.classList.add("collapsed"); thanks.hidden = true; form.hidden = false;
+  form.reset(); thanks.hidden = true; form.hidden = false;
 });
 
 })();
